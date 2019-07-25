@@ -1,23 +1,33 @@
-import { PoweredUP } from "node-poweredup";
-const poweredUP: PoweredUP = new PoweredUP();
+import express from "express";
 
-poweredUP.on("discover", async (hub) => {
-    console.log(`Discovered ${hub.name}!`);
-    await hub.connect();
-    console.log("Connected");
-    await hub.sleep(3000);
+import TrainController from "./controllers/TrainController";
+import HubController from "./controllers/HubController";
 
-    while (true) {
-        console.log("Running motor B at speed 75");
-        hub.setMotorSpeed("B", 75);
-        console.log("Running motor A at speed 100 for 2 seconds");
-        await hub.setMotorSpeed("A", 100,  2000);
-        await hub.sleep(1000);
-        console.log("Running motor A at speed -50 for 1 seconds");
-        await hub.setMotorSpeed("A", -50,  1000);
-        await hub.sleep(1000);
+const app: express.Express = express();
+const trainController: TrainController = new TrainController();
+const hubController: HubController = new HubController(trainController);
+
+app.post("/connect", async (req, res) => {
+    await hubController.scan();
+    res.sendStatus(200);
+});
+
+app.post("/disconnect", async (req, res) => {
+    try {
+        await hubController.disconnect();
+        res.sendStatus(200);
+    } catch(Error) {
+        res.status(404).send("Train not found");
     }
 });
 
-poweredUP.scan();
-console.log("Scanning for Hubs...");
+app.post("/forward/:speed", async (req, res) => {
+    try {
+        trainController.forward(req.params.speed);
+    } catch(Error) {
+        res.status(404).send("Train not found");
+    }
+});
+
+app.get("/status", (req, res) => res.send(hubController.trainIsConnected));
+app.listen(3000, () => console.log("Fat Controller listening on port 3000!"));
