@@ -14,7 +14,7 @@
     "@types/node": "^12.6.8",
     "@types/web-bluetooth": "0.0.4",
     "bluetooth-hci-socket": "^0.5.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "fp-ts": "^2.0.3",
     "node-poweredup": "^2.5.3"
   }
